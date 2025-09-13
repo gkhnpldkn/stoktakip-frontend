@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080/api';
+// Ortam değişkeni VITE_API_URL olarak tanımlanmalı (.env dosyasında)
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -46,62 +47,41 @@ api.interceptors.response.use(
   }
 );
 
-// Stock API - Backend'inizdeki StockController'a uygun
+// Stock API
 export const stockAPI = {
-  // Tüm ürünleri getir
   getAll: () => api.get('/stock/all'),
-  
-  // ID ile ürün getir
   getById: (id) => api.get(`/stock/${id}`),
-  
-  // ItemCode ile ürün getir
   getByItemCode: (itemCode) => api.get(`/stock/itemCode?itemCode=${itemCode}`),
-  
-  // Yeni ürün ekle
   create: (itemData) => api.post('/stock', itemData),
-  
-  // Ürün güncelle (itemCode ile)
   update: (itemCode, itemData) => api.put(`/stock/${itemCode}`, itemData),
-  
-  // Ürün sil (ID ile)
   delete: (id) => api.delete(`/stock/${id}`),
 };
 
-// Item Movement API - Backend'inizdeki ItemMovementController'a uygun
+// Item Movement API
 export const movementAPI = {
-  // Ürün hareketlerini listele
   getMovements: (itemCode, filters = {}) => {
     const params = new URLSearchParams();
     if (filters.type) params.append('type', filters.type);
     if (filters.from) params.append('from', filters.from);
     if (filters.to) params.append('to', filters.to);
-    
     return api.get(`/movements/${itemCode}?${params.toString()}`);
   },
 };
 
-// Production API - Backend'inizdeki ProductionController'a uygun
+// Production API
 export const productionAPI = {
-  // Üretim yap
   produceItem: (itemCode, count) => api.post(`/production/${itemCode}?count=${count}`),
 };
 
 // Ürün Ağacı API
 export const itemTreeAPI = {
-  // Toplu ürün ağacı oluştur
   createTreeBulk: (data) => api.post('/item-tree/bulk', data),
-  
-  // Belirli bir ürünün bileşenlerini getir
   getTreeByItemCode: (itemCode) => api.get(`/item-tree/${itemCode}`),
-  
-  // Ürün ağacı ilişkisini sil
   deleteRelation: (itemCode) => api.delete(`/item-tree/${itemCode}`),
-  
-  // Ürünün toplam maliyetini hesapla
   getTotalCost: (itemCode) => api.get(`/item-tree/${itemCode}/total-cost`)
 };
 
-// Auth API (eğer backend'inizde auth varsa)
+// Auth API
 export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),

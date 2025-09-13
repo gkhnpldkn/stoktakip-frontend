@@ -30,27 +30,28 @@ const AnaSayfa = () => {
       setDashboardLoading(true);
       const response = await stockAPI.getAll();
       const items = response.data;
-      
+
       const now = new Date();
       const thisMonth = now.getMonth();
       const thisYear = now.getFullYear();
-      
+
       let lowStockCount = 0;
       let criticalStockCount = 0;
       let thisMonthAddedCount = 0;
-      
+
       items.forEach(item => {
         // Düşük stok kontrolü (kritik seviyenin 2 katından az)
         if (item.quantity <= item.criticalAmount * 2 && item.quantity > item.criticalAmount) {
           lowStockCount++;
         }
-        
+
         // Kritik stok kontrolü (kritik seviyeden az veya eşit)
         if (item.quantity <= item.criticalAmount) {
           criticalStockCount++;
         }
       });
-      
+
+
       // Bu ay eklenen ürünleri saymak için hareket verilerini kontrol et
       try {
         const allActivities = [];
@@ -58,7 +59,7 @@ const AnaSayfa = () => {
           try {
             const movementResponse = await movementAPI.getMovements(item.itemCode);
             const movements = movementResponse.data;
-            
+
             movements.forEach(movement => {
               if (movement.movementType === 'CREATE') {
                 const movementDate = new Date(movement.createdAt);
@@ -75,14 +76,14 @@ const AnaSayfa = () => {
         // Hareket verileri alınamadı, varsayılan değer kullan
         thisMonthAddedCount = Math.floor(Math.random() * 10) + 5; // Gerçekçi bir sayı
       }
-      
+
       setDashboardData({
         totalItems: items.length,
         lowStockItems: lowStockCount,
         criticalStockItems: criticalStockCount,
         thisMonthAdded: thisMonthAddedCount
       });
-      
+
     } catch (error) {
       console.error('Dashboard verileri yüklenirken hata:', error);
     } finally {
@@ -97,24 +98,24 @@ const AnaSayfa = () => {
       setFilterType(type);
       const response = await stockAPI.getAll();
       const items = response.data;
-      
+
       let filtered = [];
-      
+
       switch (type) {
         case 'low':
-          filtered = items.filter(item => 
+          filtered = items.filter(item =>
             item.quantity <= item.criticalAmount * 2 && item.quantity > item.criticalAmount
           );
           break;
         case 'critical':
-          filtered = items.filter(item => 
+          filtered = items.filter(item =>
             item.quantity <= item.criticalAmount
           );
           break;
         default:
           filtered = items;
       }
-      
+
       setFilteredItems(filtered);
       setShowFilteredModal(true);
     } catch (error) {
@@ -167,15 +168,15 @@ const AnaSayfa = () => {
       // Tüm ürünleri al
       const stockResponse = await stockAPI.getAll();
       const items = stockResponse.data;
-      
+
       // Her ürün için son hareketleri al (en fazla 3'er tane)
       const allActivities = [];
-      
+
       for (const item of items.slice(0, 5)) { // İlk 5 ürün için
         try {
           const movementResponse = await movementAPI.getMovements(item.itemCode);
           const movements = movementResponse.data.slice(0, 3); // Her ürün için en fazla 3 hareket
-          
+
           movements.forEach(movement => {
             allActivities.push({
               ...movement,
@@ -187,10 +188,11 @@ const AnaSayfa = () => {
           console.log(`${item.itemCode} için hareket verisi alınamadı`);
         }
       }
-      
+
+
       // Tarihe göre sırala (en yeni önce)
       allActivities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      
+
       // En son 10 aktiviteyi al
       setRecentActivities(allActivities.slice(0, 10));
     } catch (error) {
@@ -245,7 +247,7 @@ const AnaSayfa = () => {
 
   const getActivityText = (movement) => {
     const { movementType, itemName, quantityChange, reason } = movement;
-    
+
     switch (movementType) {
       case 'CREATE':
         return `Yeni ürün eklendi: "${itemName}"`;
@@ -270,7 +272,7 @@ const AnaSayfa = () => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) {
       return 'Az önce';
     } else if (diffInHours < 24) {
@@ -313,8 +315,8 @@ const AnaSayfa = () => {
             <Col>
               <div className="d-flex justify-content-between align-items-center mb-4">
                 <h2>Dashboard</h2>
-                <Button 
-                  variant="outline-secondary" 
+                <Button
+                  variant="outline-secondary"
                   size="sm"
                   onClick={() => {
                     fetchDashboardData();
@@ -327,7 +329,7 @@ const AnaSayfa = () => {
               </div>
             </Col>
           </Row>
-          
+
           <Row className="mb-4">
             {dashboardCards.map((card, index) => (
               <Col key={index} md={3} className="mb-3">
@@ -346,8 +348,8 @@ const AnaSayfa = () => {
                         card.value
                       )}
                     </Card.Text>
-                    <Button 
-                      variant={card.color} 
+                    <Button
+                      variant={card.color}
                       size="sm"
                       onClick={card.action}
                     >
@@ -367,14 +369,14 @@ const AnaSayfa = () => {
                 </Card.Header>
                 <Card.Body>
                   <div className="d-grid gap-2">
-                    <Button 
-                      variant="primary" 
+                    <Button
+                      variant="primary"
                       onClick={() => navigate('/stok-yonetimi')}
                     >
                       Yeni Ürün Ekle
                     </Button>
-                    <Button 
-                      variant="outline-primary" 
+                    <Button
+                      variant="outline-primary"
                       onClick={handleShowStockList}
                     >
                       Stok Listesini Görüntüle
@@ -383,13 +385,13 @@ const AnaSayfa = () => {
                 </Card.Body>
               </Card>
             </Col>
-            
+
             <Col md={6}>
               <Card>
                 <Card.Header className="d-flex justify-content-between align-items-center">
                   <h5>Son Aktiviteler</h5>
-                  <Button 
-                    variant="outline-secondary" 
+                  <Button
+                    variant="outline-secondary"
                     size="sm"
                     onClick={fetchRecentActivities}
                     disabled={activitiesLoading}
@@ -433,9 +435,9 @@ const AnaSayfa = () => {
         </Container>
 
         {/* Stok Listesi Modal */}
-        <Modal 
-          show={showStockModal} 
-          onHide={() => setShowStockModal(false)} 
+        <Modal
+          show={showStockModal}
+          onHide={() => setShowStockModal(false)}
           size="xl"
           backdrop="static"
         >
@@ -446,10 +448,10 @@ const AnaSayfa = () => {
             {error && (
               <Alert variant="danger" className="mb-3">
                 {error}
-                <Button 
-                  variant="outline-danger" 
-                  size="sm" 
-                  className="ms-2" 
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  className="ms-2"
                   onClick={handleShowStockList}
                 >
                   Tekrar Dene
@@ -516,9 +518,9 @@ const AnaSayfa = () => {
         </Modal>
 
         {/* Filtreli Ürün Listesi Modal */}
-        <Modal 
-          show={showFilteredModal} 
-          onHide={() => setShowFilteredModal(false)} 
+        <Modal
+          show={showFilteredModal}
+          onHide={() => setShowFilteredModal(false)}
           size="xl"
           backdrop="static"
         >
@@ -575,8 +577,8 @@ const AnaSayfa = () => {
                         <td>{item.boy || '-'}</td>
                         <td>{getStokDurumu(item.quantity, item.criticalAmount)}</td>
                         <td>
-                          <Button 
-                            variant="outline-primary" 
+                          <Button
+                            variant="outline-primary"
                             size="sm"
                             onClick={() => {
                               setShowFilteredModal(false);
